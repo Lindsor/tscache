@@ -1,9 +1,13 @@
 {
   "name": "@lindsor/tscache",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
+  "author": "Marcelo Luz <marcelo.luz@lindsor.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lindsor/tscache.git"
+  },
   "main": "index.js",
   "scripts": {},
-  "author": "",
   "license": "MIT"
 }
