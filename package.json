@@ -7,13 +7,16 @@
     "type": "git",
     "url": "https://github.com/Lindsor/tscache.git"
   },
-  "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "build": "rm -rf dist && tsc -b tsconfig.json tsconfig.cjs.json tsconfig.types.json && npm run esmPackageJson",
+    "esmPackageJson": "node ./bin/esm-package-json.mjs",
+    "test": "jest",
+    "prepublish": "npm run test && npm run build"
   },
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^29.5.6",
+    "@types/node": "^20.8.7",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
     "ts-jest": "^29.1.1",
@@ -26,5 +29,13 @@
   },
   "peerDependencies": {
     "reflect-metadata": "^0.1.13"
+  },
+  "exports": {
+    "./*": {
+      "types": "./build/types/*.d.ts",
+      "require": "./build/cjs/*.js",
+      "import": "./build/esm/*.js",
+      "default": "./build/esm/*.js"
+    }
   }
 }
