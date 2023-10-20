@@ -5,7 +5,7 @@
   "author": "Marcelo Luz <marcelo.luz@lindsor.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Lindsor/tscache.git"
+    "url": "git+https://github.com/Lindsor/tscache.git"
   },
   "scripts": {
     "build": "rm -rf dist && tsc -b tsconfig.json tsconfig.cjs.json tsconfig.types.json && npm run esmPackageJson",
