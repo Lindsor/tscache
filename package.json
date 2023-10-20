@@ -33,10 +33,10 @@
   },
   "exports": {
     "./*": {
-      "types": "./build/types/*.d.ts",
-      "require": "./build/cjs/*.js",
-      "import": "./build/esm/*.js",
-      "default": "./build/esm/*.js"
+      "types": "./dist/types/*.d.ts",
+      "require": "./dist/cjs/*.js",
+      "import": "./dist/esm/*.js",
+      "default": "./dist/esm/*.js"
     }
   },
   "files": [
