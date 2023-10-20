@@ -1,6 +1,6 @@
 {
   "name": "@lindsor/tscache",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "",
   "author": "Marcelo Luz <marcelo.luz@lindsor.com>",
   "repository": {
@@ -12,7 +12,7 @@
     "esmPackageJson": "node ./bin/esm-package-json.mjs",
     "test": "jest",
     "prepublish": "npm run build",
-    "postpublish": "npm version minor -m && git push && git push --tags"
+    "postpublish": "npm version minor -m \"Bump version v%s\" && git push && git push --tags"
   },
   "license": "MIT",
   "devDependencies": {
