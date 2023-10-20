@@ -233,11 +233,11 @@ export const CacheKeyParam: MethodParamDecorator = () => {
   ): void {
     const propertyKey: string = `${methodKey}_argsKey`;
     const argsKeys: number[] =
-      // @ts-expect-error
+      // @ts-ignore
       Reflect.getMetadata(propertyKey, classTarget) || [];
 
     argsKeys.unshift(parameterIndex);
-    // @ts-expect-error
+    // @ts-ignore
     Reflect.defineMetadata(propertyKey, argsKeys, classTarget);
   };
 };
@@ -302,7 +302,7 @@ export const Cacheable: MethodDecorator<CacheableOptions> & {
       }
 
       const argsKeys: number[] =
-        // @ts-expect-error
+        // @ts-ignore
         Reflect.getMetadata(propertyKey, classTarget) || [];
       const key: CacheName = getCacheOptionsKey(cacheOptions, argsKeys, args);
 
