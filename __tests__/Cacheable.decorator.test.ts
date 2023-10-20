@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { CACHE_KEY_SUFFIX, CacheKeyParam, Cacheable, EvictCache } from '../src';
 
 jest.useFakeTimers();
@@ -72,7 +73,6 @@ describe('@Cacheable({ ... })', () => {
 
   test(`cache names cannot contain restricted character '${CACHE_KEY_SUFFIX}'`, () => {
     try {
-
       // @ts-expect-error
       class SomeOtherClass {
         @Cacheable({ cacheName: `restricted${CACHE_KEY_SUFFIX}Characters` })

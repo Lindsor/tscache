@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { klona } from 'klona';
 
 export const CACHE_KEY_SUFFIX = '$$';

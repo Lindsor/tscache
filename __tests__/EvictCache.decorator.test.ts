@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { CacheKeyParam, Cacheable, EvictCache, EvictCacheAll } from '../src';
 
 jest.useFakeTimers();

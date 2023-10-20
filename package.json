@@ -23,5 +23,8 @@
   "dependencies": {
     "klona": "^2.0.6",
     "reflect-metadata": "^0.1.13"
+  },
+  "peerDependencies": {
+    "reflect-metadata": "^0.1.13"
   }
 }
