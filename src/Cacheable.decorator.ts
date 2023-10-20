@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import { klona } from 'klona';
 
-const CACHE_KEY_SUFFIX = '$$';
+export const CACHE_KEY_SUFFIX = '$$';
 
 // TODO: Add Observable handling.
 type CachedResponse<T> = Promise<T> | T;
 
-type CacheKey = string;
+type CacheName = string;
 
 enum CacheWrapAs {
   OBSERVABLE,
@@ -15,8 +15,8 @@ enum CacheWrapAs {
 }
 
 interface CacheEntry<T = unknown> {
-  key: CacheKey;
-  groups?: CacheKey[];
+  key: CacheName;
+  groups?: CacheName[];
   populatedAt: number;
   wrapAs: CacheWrapAs;
   value: T;
@@ -24,16 +24,22 @@ interface CacheEntry<T = unknown> {
 
 export interface CacheableOptions {
   cacheName: string;
-  groups?: CacheKey[];
+  groups?: CacheName[];
   useExplicitPrams?: boolean;
   expiryInSeconds?: number | false;
   delayInMs?: number | false;
   shouldCloneDeep?: boolean;
 }
 
+export interface CacheableGlobalOptions
+  extends Omit<CacheableOptions, 'cacheName' | 'groups'> {
+  isEnabled: boolean;
+  disabledCacheNames: CacheName[];
+}
+
 export interface EvictCacheOptions {
   evictAll?: boolean;
-  keys?: string[];
+  cacheNames?: string[];
   groups?: string[];
 }
 
@@ -51,30 +57,35 @@ type MethodDecoratorReturn = (
 ) => void;
 type MethodDecorator<T> = (options: T) => MethodDecoratorReturn;
 
-let __CACHE__: Record<CacheKey, CacheEntry<unknown>> = {};
-const USED_CACHE_NAMES: CacheKey[] = [];
+let __CACHE__: Record<CacheName, CacheEntry<unknown>> = {};
+const USED_CACHE_NAMES: CacheName[] = [];
 
-const defaultCacheOptions = (): Required<
-  Omit<CacheableOptions, 'cacheName' | 'argsKey' | 'groups'>
-> => ({
+const defaultCacheOptions = (
+  options: CacheableOptions,
+): Required<Omit<CacheableOptions, 'cacheName' | 'argsKey' | 'groups'>> => ({
   expiryInSeconds: false,
   delayInMs: false,
   shouldCloneDeep: true,
   useExplicitPrams: false,
+  ...Cacheable.getGlobalOptions(),
+  ...options,
 });
 
-const defaultEvictCacheOptions = (): Required<EvictCacheOptions> => ({
-  evictAll: true,
-  keys: [],
+const defaultEvictCacheOptions = (
+  options: EvictCacheOptions,
+): Required<EvictCacheOptions> => ({
+  evictAll: false,
+  cacheNames: [],
   groups: [],
+  ...options,
 });
 
 const getCacheOptionsKey = (
   cacheOptions: CacheableOptions,
   argsKey: number[],
   functionArgs: unknown[],
-): CacheKey => {
-  let key: CacheKey = cacheOptions.cacheName;
+): CacheName => {
+  let key: CacheName = cacheOptions.cacheName;
 
   if (!cacheOptions.useExplicitPrams && !!functionArgs?.length) {
     key += `${CACHE_KEY_SUFFIX}${JSON.stringify(functionArgs)}`;
@@ -95,7 +106,7 @@ const getCacheOptionsKey = (
 };
 
 const addToCache = <T = unknown>(
-  cacheKey: CacheKey,
+  cacheKey: CacheName,
   cacheOptions: CacheableOptions,
   cacheValue: T,
   wrapAs: CacheWrapAs,
@@ -118,7 +129,10 @@ const addToCache = <T = unknown>(
   return cacheEntry;
 };
 
-const isCacheNameInKey = (cacheName: CacheKey, cacheKey: CacheKey): boolean => {
+const isCacheNameInKey = (
+  cacheName: CacheName,
+  cacheKey: CacheName,
+): boolean => {
   if (
     cacheKey === cacheName ||
     cacheKey.startsWith(`${cacheName}${CACHE_KEY_SUFFIX}`)
@@ -134,17 +148,17 @@ const isCacheEntryValid = (
   argsKeys: number[],
   functionArgs: unknown[],
 ): boolean => {
-  const key: CacheKey = getCacheOptionsKey(
+  const key: CacheName = getCacheOptionsKey(
     cacheOptions,
     argsKeys,
     functionArgs,
   );
 
-  if (!__CACHE__[key]) {
+  if (!(key in __CACHE__)) {
     return false;
   }
 
-  if (!__CACHE__[key].value) {
+  if (!('value' in __CACHE__[key])) {
     return false;
   }
 
@@ -168,7 +182,7 @@ const isCacheEntryValid = (
 };
 
 const getWrappedCacheValue = <T = unknown>(
-  cacheKey: CacheKey,
+  cacheKey: CacheName,
   cacheOptions: CacheableOptions,
 ): CachedResponse<T> => {
   const cacheEntry: CacheEntry<T> = __CACHE__[cacheKey] as CacheEntry<T>;
@@ -199,14 +213,15 @@ const getWrappedCacheValue = <T = unknown>(
 };
 
 const isCachingEnabled = (cacheOptions: CacheableOptions): boolean => {
-  // TODO: Check environment for disabled.
-  // if (process.env.DISABLE_CACHING === 'true') {
-  //   return false
-  // }
-  // TODO: Check environment for disabled groups
-  // if (process.env.DISABLE_CACHING_GROUPS?.includes(cacheOptions.groups)) {
-  //   return false
-  // }
+  if (!Cacheable._options.isEnabled) {
+    return false;
+  }
+
+  if (
+    Cacheable._options?.disabledCacheNames?.includes(cacheOptions.cacheName)
+  ) {
+    return false;
+  }
 
   return true;
 };
@@ -226,9 +241,24 @@ export const CacheKeyParam: MethodParamDecorator = () => {
   };
 };
 
-export const Cacheable: MethodDecorator<CacheableOptions> = (
-  cacheOptions: CacheableOptions,
-) => {
+/**
+ * TODO: Rearchitecture the cache in the format:
+ * {
+ *   [cacheName]: {
+ *     [cacheKey]: cacheEntry
+ *   }
+ * }
+ * @param cacheOptions
+ * @returns
+ */
+export const Cacheable: MethodDecorator<CacheableOptions> & {
+  getCache: () => typeof __CACHE__;
+  getGlobalOptions: () => CacheableGlobalOptions;
+  disable: () => void;
+  enable: () => void;
+  disableCacheNames: (cacheNames: CacheName[]) => void;
+  _options: CacheableGlobalOptions;
+} = (cacheOptions: CacheableOptions) => {
   if (!isCachingEnabled(cacheOptions)) {
     return (
       _target: Object,
@@ -237,15 +267,19 @@ export const Cacheable: MethodDecorator<CacheableOptions> = (
     ) => descriptor;
   }
 
-  cacheOptions = {
-    ...defaultCacheOptions(),
-    ...cacheOptions,
-  };
+  cacheOptions = defaultCacheOptions(cacheOptions) as CacheableOptions;
 
   // TODO: Throw error in dev turn off caching in prod
   if (USED_CACHE_NAMES.includes(cacheOptions.cacheName)) {
     throw new Error(
       `Duplicate 'cacheName' declared in @Cacheable decorator: ${cacheOptions.cacheName}`,
+    );
+  }
+
+  // TODO: Throw error in dev turn off caching in prod
+  if (cacheOptions.cacheName.includes(CACHE_KEY_SUFFIX)) {
+    throw new Error(
+      `Invalid character, cacheName cannot contain characers '${CACHE_KEY_SUFFIX}'`,
     );
   }
 
@@ -268,7 +302,7 @@ export const Cacheable: MethodDecorator<CacheableOptions> = (
 
       const argsKeys: number[] =
         Reflect.getMetadata(propertyKey, classTarget) || [];
-      const key: CacheKey = getCacheOptionsKey(cacheOptions, argsKeys, args);
+      const key: CacheName = getCacheOptionsKey(cacheOptions, argsKeys, args);
 
       if (isCacheEntryValid(cacheOptions, argsKeys, args)) {
         return getWrappedCacheValue(key, cacheOptions);
@@ -283,26 +317,44 @@ export const Cacheable: MethodDecorator<CacheableOptions> = (
 
       if (response instanceof Promise) {
         return response.then((originalResponse) => {
-          addToCache(key, cacheOptions, originalResponse, CacheWrapAs.PROMISE);
-          return originalResponse;
+          return addToCache(
+            key,
+            cacheOptions,
+            originalResponse,
+            CacheWrapAs.PROMISE,
+          ).value;
         });
       }
 
-      addToCache(key, cacheOptions, response, CacheWrapAs.RAW);
-      return response;
+      return addToCache(key, cacheOptions, response, CacheWrapAs.RAW).value;
     };
 
     return descriptor;
   };
 };
 
+// Used for storing the global cache object.
+// TODO: Figure out a better way and/or allow user to choose
+Cacheable.getCache = () => __CACHE__;
+Cacheable._options = {
+  isEnabled: true,
+  disabledCacheNames: [],
+};
+Cacheable.getGlobalOptions = () => Cacheable._options;
+Cacheable.disable = () => {
+  Cacheable._options.isEnabled = false;
+};
+Cacheable.enable = () => {
+  Cacheable._options.isEnabled = true;
+};
+Cacheable.disableCacheNames = (cacheNames: CacheName[]) => {
+  Cacheable._options.disabledCacheNames = cacheNames;
+};
+
 export const EvictCache: MethodDecorator<EvictCacheOptions> = (
   evictOptions: EvictCacheOptions,
 ) => {
-  evictOptions = {
-    ...defaultEvictCacheOptions(),
-    ...evictOptions,
-  };
+  evictOptions = defaultEvictCacheOptions(evictOptions);
 
   return (
     _target: Object,
@@ -319,8 +371,8 @@ export const EvictCache: MethodDecorator<EvictCacheOptions> = (
         return originalMethod.apply(this, args);
       }
 
-      if (!!evictOptions.keys?.length) {
-        evictOptions.keys.forEach((evictKey: CacheKey) => {
+      if (!!evictOptions.cacheNames?.length) {
+        evictOptions.cacheNames.forEach((evictKey: CacheName) => {
           for (let key in __CACHE__) {
             if (isCacheNameInKey(evictKey, key)) {
               delete __CACHE__[key];
@@ -332,7 +384,7 @@ export const EvictCache: MethodDecorator<EvictCacheOptions> = (
       if (evictOptions.groups?.length) {
         for (let key in __CACHE__) {
           const isInEvictGroup: boolean = evictOptions.groups.some(
-            (evictGroup: CacheKey) =>
+            (evictGroup: CacheName) =>
               __CACHE__[key].groups?.includes(evictGroup),
           );
 
