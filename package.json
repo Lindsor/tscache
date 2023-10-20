@@ -38,5 +38,8 @@
       "import": "./build/esm/*.js",
       "default": "./build/esm/*.js"
     }
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
