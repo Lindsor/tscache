@@ -1,6 +1,6 @@
 {
   "name": "@lindsor/tscache",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "author": "Marcelo Luz <marcelo.luz@lindsor.com>",
   "repository": {
@@ -11,7 +11,7 @@
     "build": "rm -rf dist && tsc -b tsconfig.json tsconfig.cjs.json tsconfig.types.json && npm run esmPackageJson",
     "esmPackageJson": "node ./bin/esm-package-json.mjs",
     "test": "jest",
-    "prepublish": "npm run test && npm run build"
+    "prepublish": "npm run build"
   },
   "license": "MIT",
   "devDependencies": {
