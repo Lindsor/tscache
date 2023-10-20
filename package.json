@@ -11,7 +11,8 @@
     "build": "rm -rf dist && tsc -b tsconfig.json tsconfig.cjs.json tsconfig.types.json && npm run esmPackageJson",
     "esmPackageJson": "node ./bin/esm-package-json.mjs",
     "test": "jest",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "postpublish": "npm version minor -m && git push && git push --tags"
   },
   "license": "MIT",
   "devDependencies": {
