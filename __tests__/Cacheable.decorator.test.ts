@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { Observable, of, switchMap, tap } from 'rxjs';
 import { CacheKeyParam, Cacheable, CacheableBase, EvictCache } from '../src';
 
 jest.useFakeTimers();
@@ -197,6 +198,103 @@ describe('@Cacheable({ ... })', () => {
     const cachedResponse = clazz.someMethod();
     jest.runAllTimers();
     await expect(cachedResponse).resolves.toBe(0);
+  });
+
+  test('cache can handle Observables', (done) => {
+    class SomeClass {
+      private simpleCachedFunctionResponses: readonly number[] = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      ];
+      private countCall: number = -1;
+
+      @Cacheable({ cacheName: 'observableResponse' })
+      someMethod(): Observable<number> {
+        this.countCall += 1;
+        return of(this.simpleCachedFunctionResponses[this.countCall]);
+      }
+
+      @EvictCache({ evictAll: true })
+      evict(): void {}
+    }
+
+    const clazz = new SomeClass();
+
+    clazz
+      .someMethod()
+      .pipe(
+        switchMap((result) => {
+          expect(result).toBe(0);
+
+          return clazz.someMethod();
+        }),
+        switchMap((result) => {
+          expect(result).toBe(0);
+
+          clazz.evict();
+
+          return clazz.someMethod();
+        }),
+        switchMap((result) => {
+          expect(result).toBe(1);
+
+          return clazz.someMethod();
+        }),
+        tap((result) => {
+          expect(result).toBe(1);
+        }),
+      )
+      .subscribe(() => done());
+  });
+
+  test('cache can handle delayInMs Observables', (done) => {
+    jest.useRealTimers();
+
+    class SomeClass {
+      private simpleCachedFunctionResponses: readonly number[] = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      ];
+      private countCall: number = -1;
+
+      @Cacheable({
+        cacheName: 'delayInMsObservable',
+        delayInMs: 1,
+      })
+      someMethod(): Observable<number> {
+        this.countCall += 1;
+        return of(this.simpleCachedFunctionResponses[this.countCall]);
+      }
+
+      @EvictCache({ evictAll: true })
+      evict(): void {}
+    }
+
+    const clazz = new SomeClass();
+
+    clazz
+      .someMethod()
+      .pipe(
+        switchMap((result) => {
+          expect(result).toBe(0);
+
+          return clazz.someMethod();
+        }),
+        switchMap((result) => {
+          expect(result).toBe(0);
+
+          clazz.evict();
+
+          return clazz.someMethod();
+        }),
+        switchMap((result) => {
+          expect(result).toBe(1);
+
+          return clazz.someMethod();
+        }),
+        tap((result) => {
+          expect(result).toBe(1);
+        }),
+      )
+      .subscribe(() => done());
   });
 
   test('when disabled after initialization dont run', () => {

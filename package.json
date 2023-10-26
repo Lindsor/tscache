@@ -8,10 +8,11 @@
     "url": "git+https://github.com/Lindsor/tscache.git"
   },
   "scripts": {
+    "lint": "tsc --noEmit",
     "build": "rm -rf dist && tsc -b tsconfig.json tsconfig.cjs.json tsconfig.types.json && npm run esmPackageJson",
     "esmPackageJson": "node ./bin/esm-package-json.mjs",
     "test": "jest",
-    "prepublish": "npm run build",
+    "prepublish": "npm run lint && npm run test && npm run build",
     "postpublish": "npm version minor -m \"Bump version v%s\" && git push && git push --tags"
   },
   "license": "MIT",
@@ -26,7 +27,8 @@
   },
   "dependencies": {
     "klona": "^2.0.6",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1"
   },
   "peerDependencies": {
     "reflect-metadata": "^0.1.13"

@@ -1,14 +1,17 @@
+import type { Observable } from 'rxjs';
 export type CacheInterface = Record<CacheName, CacheEntry<unknown>>;
 
-// TODO: Add Observable handling.
-export type CachedResponse<T> = Promise<T> | T;
+export type CachedResponse<T> =
+  | Promise<CacheEntry<T | null>>
+  | CacheEntry<T | null>
+  | Observable<CacheEntry<T | null>>;
 
 export type CacheName = string;
 
 export enum CacheWrapAs {
-  OBSERVABLE,
-  PROMISE,
-  RAW,
+  OBSERVABLE = 1,
+  PROMISE = 2,
+  RAW = 3,
 }
 
 export interface CacheEntry<T = unknown> {

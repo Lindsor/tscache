@@ -5,9 +5,7 @@ export abstract class CacheStorageBase {
     key: string,
     item: CacheEntry<T>,
   ): Promise<CacheEntry<T>> | CacheEntry<T>;
-  abstract get<T>(
-    cacheKey: CacheName,
-  ): Promise<CacheEntry<T | null>> | CacheEntry<T | null>;
+  abstract get<T>(cacheKey: CacheName): Promise<CacheEntry<T>> | CacheEntry<T>;
   abstract getKeys(): Promise<string[]> | string[];
   abstract clearStorage(): Promise<void> | void;
   abstract clearStorageKeys(keys: string[]): Promise<void> | void;

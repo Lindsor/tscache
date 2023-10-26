@@ -1,3 +1,4 @@
+import { Observable, map } from 'rxjs';
 import {
   CacheEntry,
   CacheInterface,
@@ -103,8 +104,6 @@ export const Cacheable: MethodDecorator<CacheableOptions> & {
         args,
       );
 
-      // TODO: Add Observable.
-
       if (response instanceof Promise) {
         return response.then((originalResponse) => {
           return (
@@ -116,6 +115,21 @@ export const Cacheable: MethodDecorator<CacheableOptions> & {
             ) as CacheEntry<unknown>
           ).value;
         });
+      }
+
+      if (response instanceof Observable) {
+        return response.pipe(
+          map((originalResponse) => {
+            return (
+              globalCache.addToCache(
+                key,
+                cacheOptions,
+                originalResponse,
+                CacheWrapAs.OBSERVABLE,
+              ) as CacheEntry<unknown>
+            ).value;
+          }),
+        );
       }
 
       return (

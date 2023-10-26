@@ -1,4 +1,6 @@
 import { klona } from 'klona';
+import type { Observable } from 'rxjs';
+import { delay, of } from 'rxjs';
 import {
   CacheEntry,
   CacheName,
@@ -6,7 +8,6 @@ import {
   CacheWrapAs,
   CacheableGlobalOptions,
   CacheableOptions,
-  CachedResponse,
   EvictCacheOptions,
 } from './';
 
@@ -60,17 +61,17 @@ export class CacheableBase<
   getWrappedCacheValue<T = unknown>(
     cacheKey: CacheName,
     cacheOptions: CacheableOptions,
-  ): CachedResponse<T | null> {
-    const cacheEntry: CacheEntry<T | null> | Promise<CacheEntry<T | null>> =
-      this.storage.get(cacheKey);
+  ): Observable<T> | Promise<T> | T | Promise<Observable<T> | Promise<T> | T> {
+    const cacheEntry: CacheEntry<T> | Promise<CacheEntry<T>> =
+      this.storage.get<T>(cacheKey);
 
     if (cacheEntry instanceof Promise) {
-      return cacheEntry.then((cacheEntry: CacheEntry<T | null>) =>
-        this.getWrappedCacheValueSync(cacheEntry, cacheOptions),
+      return cacheEntry.then((cacheEntry: CacheEntry<T>) =>
+        this.getWrappedCacheValueSync<T>(cacheEntry, cacheOptions),
       );
     }
 
-    return this.getWrappedCacheValueSync(cacheEntry, cacheOptions);
+    return this.getWrappedCacheValueSync<T>(cacheEntry, cacheOptions);
   }
 
   createCacheName(cacheName: CacheName): void {
@@ -165,11 +166,11 @@ export class CacheableBase<
 
     if (cacheEntry instanceof Promise) {
       return cacheEntry.then((cacheEntry: CacheEntry<unknown>) => {
-        return this.isCacheEntryValidSync(key, cacheEntry, cacheOptions);
+        return this.isCacheEntryValidSync(cacheEntry, cacheOptions);
       });
     }
 
-    return this.isCacheEntryValidSync(key, cacheEntry, cacheOptions);
+    return this.isCacheEntryValidSync(cacheEntry, cacheOptions);
   }
 
   evictCache(evictOptions: EvictCacheOptions): void | Promise<void> {
@@ -191,7 +192,7 @@ export class CacheableBase<
   private getWrappedCacheValueSync<T>(
     cacheEntry: CacheEntry<T>,
     cacheOptions: CacheableOptions,
-  ): CachedResponse<T | null> {
+  ): T | Observable<T> | Promise<T> {
     let cacheValue: T = cacheEntry.value;
 
     if (cacheOptions.shouldCloneDeep) {
@@ -199,7 +200,13 @@ export class CacheableBase<
     }
 
     if (cacheEntry.wrapAs === CacheWrapAs.OBSERVABLE) {
-      // TODO: Implement
+      let response$: Observable<T> = of(cacheValue);
+
+      if (typeof cacheOptions.delayInMs === 'number') {
+        response$ = response$.pipe(delay(cacheOptions.delayInMs));
+      }
+
+      return response$;
     }
 
     if (cacheEntry.wrapAs === CacheWrapAs.PROMISE) {
@@ -218,7 +225,6 @@ export class CacheableBase<
   }
 
   private isCacheEntryValidSync(
-    key: CacheName,
     cacheEntry: CacheEntry<unknown>,
     cacheOptions: CacheableOptions,
   ): boolean {

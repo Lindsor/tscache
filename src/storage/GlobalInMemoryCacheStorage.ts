@@ -18,8 +18,8 @@ export class GlobalInMemoryCacheStorage extends CacheStorageBase {
     return item;
   }
 
-  get<T>(cacheKey: CacheName): CacheEntry<T | null> {
-    return __CACHE__[cacheKey] as CacheEntry<T | null>;
+  get<T>(cacheKey: CacheName): CacheEntry<T> {
+    return __CACHE__[cacheKey] as CacheEntry<T>;
   }
 
   getKeys(): string[] {
