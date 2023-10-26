@@ -467,8 +467,8 @@ describe('@Cacheable({ ... })', () => {
       private countCall: number = -1;
 
       @Cacheable({
-        cacheName: 'useExplicitPrams',
-        useExplicitPrams: true,
+        cacheName: 'useExplicitParams',
+        useExplicitParams: true,
       })
       someMethod(
         @CacheKeyParam() _arg1: number,

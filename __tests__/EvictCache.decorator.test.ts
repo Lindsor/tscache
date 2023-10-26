@@ -141,7 +141,7 @@ describe('@EvictCache({ ... })', () => {
 
       @Cacheable({
         cacheName: 'evictByNameWithExplicit',
-        useExplicitPrams: true,
+        useExplicitParams: true,
       })
       someMethod(@CacheKeyParam() _accountId: string): number {
         this.countCall += 1;
@@ -187,7 +187,7 @@ describe('@EvictCache({ ... })', () => {
       @Cacheable({
         cacheName: 'evictByGroup',
         groups: ['customer'],
-        useExplicitPrams: true,
+        useExplicitParams: true,
       })
       someMethod(@CacheKeyParam() _accountId: string): number {
         this.countCall += 1;
@@ -234,7 +234,7 @@ describe('@EvictCache({ ... })', () => {
       @Cacheable({
         cacheName: 'evictByWrongName',
         groups: ['customer'],
-        useExplicitPrams: true,
+        useExplicitParams: true,
       })
       someMethod(@CacheKeyParam() _accountId: string): number {
         this.countCall += 1;

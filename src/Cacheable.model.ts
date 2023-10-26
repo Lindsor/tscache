@@ -25,7 +25,7 @@ export interface CacheEntry<T = unknown> {
 export interface CacheableOptions {
   cacheName: string;
   groups?: CacheName[];
-  useExplicitPrams?: boolean;
+  useExplicitParams?: boolean;
   expiryInSeconds?: number | false;
   delayInMs?: number | false;
   shouldCloneDeep?: boolean;

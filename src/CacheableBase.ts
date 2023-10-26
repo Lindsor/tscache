@@ -97,7 +97,7 @@ export class CacheableBase<
   ): CacheName {
     let key: CacheName = cacheOptions.cacheName;
 
-    if (!cacheOptions.useExplicitPrams && !!functionArgs?.length) {
+    if (!cacheOptions.useExplicitParams && !!functionArgs?.length) {
       key += `${CacheableBase.cacheNameSuffix}${JSON.stringify(functionArgs)}`;
     } else if (Array.isArray(argsKey) && !!functionArgs?.length) {
       key += CacheableBase.cacheNameSuffix;
@@ -122,7 +122,7 @@ export class CacheableBase<
       expiryInSeconds: false,
       delayInMs: false,
       shouldCloneDeep: true,
-      useExplicitPrams: false,
+      useExplicitParams: false,
       ...klona(this.options),
       ...overrideOptions,
     };
