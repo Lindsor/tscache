@@ -16,6 +16,16 @@ import {
 
 let globalCache: CacheableBase;
 
+const ensureGlobalCache = (
+  globalOptions: CacheableGlobalOptions,
+): CacheableBase => {
+  if (!globalCache) {
+    Cacheable.init(globalOptions);
+  }
+
+  return globalCache;
+};
+
 const getMethodPropertyKey = (methodName: string): string => {
   return `${methodName}_argsKey`;
 };
@@ -51,12 +61,10 @@ export const Cacheable: MethodDecorator<CacheableOptions> & {
   init: (globalOptions: CacheableGlobalOptions) => void;
   _getCache: () => CacheInterface;
 } = (cacheOptions: CacheableOptions) => {
-  if (!globalCache) {
-    Cacheable.init({
-      isEnabled: true,
-      disabledCacheNames: [],
-    });
-  }
+  ensureGlobalCache({
+    isEnabled: true,
+    disabledCacheNames: [],
+  });
 
   if (!globalCache.isCachingEnabled(cacheOptions)) {
     return (
@@ -148,7 +156,7 @@ export const Cacheable: MethodDecorator<CacheableOptions> & {
 
 // Used for storing the global cache object.
 Cacheable.init = (globalOptions: CacheableGlobalOptions) => {
-  globalCache = new CacheableBase<GlobalInMemoryCacheStorage>(
+  return new CacheableBase<GlobalInMemoryCacheStorage>(
     new GlobalInMemoryCacheStorage(),
     globalOptions,
   );
@@ -158,6 +166,11 @@ Cacheable._getCache = () => GlobalInMemoryCacheStorage.getCache();
 export const EvictCache: MethodDecorator<EvictCacheOptions> = (
   evictOptions: EvictCacheOptions,
 ) => {
+  ensureGlobalCache({
+    isEnabled: true,
+    disabledCacheNames: [],
+  });
+
   evictOptions = globalCache.getDefaultCacheEvictOptions(evictOptions);
 
   return (
