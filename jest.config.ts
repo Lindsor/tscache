@@ -4,6 +4,7 @@ const config: Config = {
   preset: 'ts-jest',
   verbose: true,
   collectCoverage: true,
+  reporters: ['default'],
   transform: {
     '^.*.ts$': [
       'ts-jest',

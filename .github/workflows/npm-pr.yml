@@ -3,8 +3,7 @@
 
 name: PR Job
 
-on:
-  pull_request
+on: pull_request
 
 jobs:
   test:
@@ -16,5 +15,12 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run lint
-      - run: npm run test
+      - run: npm run test:ci
+      - name: Test Reporter
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: 'Unit Tests'
+          path: junit.xml
+          reporter: jest-junit
       - run: npm run build
