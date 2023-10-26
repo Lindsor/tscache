@@ -1,4 +1,4 @@
-import { CacheEntry, CacheName } from '../Cacheable.model';
+import { CacheEntry, CacheName } from '../';
 
 export abstract class CacheStorageBase {
   abstract set<T>(

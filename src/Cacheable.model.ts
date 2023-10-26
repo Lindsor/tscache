@@ -32,6 +32,7 @@ export interface CacheableGlobalOptions
   extends Omit<CacheableOptions, 'cacheName' | 'groups'> {
   isEnabled: boolean;
   disabledCacheNames: CacheName[];
+  isDev?: boolean;
 }
 
 export interface EvictCacheOptions {
@@ -45,7 +46,9 @@ export type MethodParamDecoratorReturn = (
   methodKey: string,
   propertyIndex: number,
 ) => void;
-export type MethodParamDecorator = (...args: unknown[]) => MethodParamDecoratorReturn;
+export type MethodParamDecorator = (
+  ...args: unknown[]
+) => MethodParamDecoratorReturn;
 
 export type MethodDecoratorReturn = (
   classTarget: Object,

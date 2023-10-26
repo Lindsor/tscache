@@ -1,6 +1,5 @@
 import 'reflect-metadata';
-import { CacheKeyParam, Cacheable, EvictCache } from '../src';
-import { CacheableBase } from '../src/CacheableBase';
+import { CacheKeyParam, Cacheable, CacheableBase, EvictCache } from '../src';
 
 jest.useFakeTimers();
 
@@ -55,9 +54,15 @@ describe('@Cacheable({ ... })', () => {
     expect(clazz.simpleCachedFunction()).toBe(0);
   });
 
-  test('cache names cannot be reused', () => {
+  test('cache names cannot be reused and throw error in dev mode', () => {
+    Cacheable.init({
+      isEnabled: true,
+      disabledCacheNames: [],
+      isDev: true,
+    });
+
     try {
-      const cacheName = 'sameName';
+      const cacheName = 'sameName1';
 
       // @ts-expect-error
       class SomeClass {
@@ -72,21 +77,69 @@ describe('@Cacheable({ ... })', () => {
       }
     } catch {
       expect(true).toBeTruthy();
+      return;
     }
+    expect(true).toBeFalsy();
   });
 
-  test(`cache names cannot contain restricted character '${CacheableBase.cacheNameSuffix}'`, () => {
+  test('cache names cannot be reused and do not throw error in prod mode', () => {
+    try {
+      const cacheName = 'sameName2';
+
+      // @ts-expect-error
+      class SomeClass {
+        @Cacheable({ cacheName: cacheName })
+        someMethod() {}
+      }
+
+      // @ts-expect-error
+      class SomeOtherClass {
+        @Cacheable({ cacheName: cacheName })
+        someMethod() {}
+      }
+    } catch {
+      expect(false).toBeTruthy();
+      return;
+    }
+    expect(true).toBeTruthy();
+  });
+
+  test(`cache names cannot contain restricted character and throw error in dev mode '${CacheableBase.cacheNameSuffix}'`, () => {
+    Cacheable.init({
+      isEnabled: true,
+      disabledCacheNames: [],
+      isDev: true,
+    });
+
     try {
       // @ts-expect-error
       class SomeOtherClass {
         @Cacheable({
-          cacheName: `restricted${CacheableBase.cacheNameSuffix}Characters`,
+          cacheName: `restricted${CacheableBase.cacheNameSuffix}Characters1`,
         })
         someMethod() {}
       }
     } catch {
       expect(true).toBeTruthy();
+      return;
     }
+    expect(true).toBeFalsy();
+  });
+
+  test(`cache names cannot contain restricted character and does not throw error in prod mode '${CacheableBase.cacheNameSuffix}'`, () => {
+    try {
+      // @ts-expect-error
+      class SomeOtherClass {
+        @Cacheable({
+          cacheName: `restricted${CacheableBase.cacheNameSuffix}Characters2`,
+        })
+        someMethod() {}
+      }
+    } catch {
+      expect(false).toBeTruthy();
+      return;
+    }
+    expect(true).toBeTruthy();
   });
 
   test('cache can handle Promises', async () => {

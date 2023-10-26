@@ -1,17 +1,17 @@
 import {
-  CacheName,
   CacheEntry,
-  CacheableOptions,
-  EvictCacheOptions,
-  CacheWrapAs,
-  CachedResponse,
-  MethodParamDecorator,
-  CacheableGlobalOptions,
-  MethodDecorator,
   CacheInterface,
-} from './Cacheable.model';
-import { GlobalInMemoryCacheStorage } from './storage/GlobalInMemoryCacheStorage';
-import { CacheableBase } from './CacheableBase';
+  CacheName,
+  CacheWrapAs,
+  CacheableBase,
+  CacheableGlobalOptions,
+  CacheableOptions,
+  CachedResponse,
+  EvictCacheOptions,
+  GlobalInMemoryCacheStorage,
+  MethodDecorator,
+  MethodParamDecorator,
+} from './';
 
 let globalCache: CacheableBase;
 

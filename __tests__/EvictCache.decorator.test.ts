@@ -223,4 +223,38 @@ describe('@EvictCache({ ... })', () => {
     expect(clazz.someMethod('1')).toBe(2);
     expect(clazz.someMethod('2')).toBe(3);
   });
+
+  test('do nothing if no options match', () => {
+    class SomeClass {
+      private simpleCachedFunctionResponses: readonly number[] = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      ];
+      private countCall: number = -1;
+
+      @Cacheable({
+        cacheName: 'evictByWrongName',
+        groups: ['customer'],
+        useExplicitPrams: true,
+      })
+      someMethod(@CacheKeyParam() _accountId: string): number {
+        this.countCall += 1;
+        return this.simpleCachedFunctionResponses[this.countCall];
+      }
+
+      @EvictCache({
+        evictAll: false,
+      })
+      evictByWrongName() {}
+    }
+
+    const clazz = new SomeClass();
+
+    expect(clazz.someMethod('1')).toBe(0);
+    expect(clazz.someMethod('2')).toBe(1);
+
+    clazz.evictByWrongName();
+
+    expect(clazz.someMethod('1')).toBe(0);
+    expect(clazz.someMethod('2')).toBe(1);
+  });
 });

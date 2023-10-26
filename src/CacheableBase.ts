@@ -1,14 +1,14 @@
 import { klona } from 'klona';
 import {
+  CacheEntry,
+  CacheName,
+  CacheStorageBase,
+  CacheWrapAs,
   CacheableGlobalOptions,
   CacheableOptions,
   CachedResponse,
-  CacheEntry,
-  CacheName,
-  CacheWrapAs,
   EvictCacheOptions,
-} from './Cacheable.model';
-import { CacheStorageBase } from './storage/CacheStorageBase';
+} from './';
 
 export class CacheableBase<
   StorageType extends CacheStorageBase = CacheStorageBase,
@@ -74,18 +74,18 @@ export class CacheableBase<
   }
 
   createCacheName(cacheName: CacheName): void {
-    // TODO: Throw error in dev turn off caching in prod
+    const isDev: boolean = !!this.options.isDev;
+
     if (this.usedCacheNames.includes(cacheName)) {
-      throw new Error(
-        `Duplicate 'cacheName' declared in @Cacheable decorator: ${cacheName}`,
-      );
+      const message: string = `Duplicate 'cacheName' declared in @Cacheable decorator: ${cacheName}`;
+      if (isDev) throw new Error(message);
+    } else {
+      this.usedCacheNames.push(cacheName);
     }
 
-    // TODO: Throw error in dev turn off caching in prod
     if (cacheName.includes(CacheableBase.cacheNameSuffix)) {
-      throw new Error(
-        `Invalid character, cacheName cannot contain characers '${CacheableBase.cacheNameSuffix}'`,
-      );
+      const message: string = `Invalid character, cacheName cannot contain characers '${CacheableBase.cacheNameSuffix}'`;
+      if (isDev) throw new Error(message);
     }
   }
 

@@ -1,6 +1,10 @@
-import { CacheName, CacheEntry, CacheInterface } from '../Cacheable.model';
-import { CacheableBase } from '../CacheableBase';
-import { CacheStorageBase } from './CacheStorageBase';
+import {
+  CacheEntry,
+  CacheInterface,
+  CacheName,
+  CacheStorageBase,
+  CacheableBase,
+} from '../';
 
 let __CACHE__: CacheInterface = {};
 
