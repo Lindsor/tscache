@@ -13,8 +13,7 @@
     "esmPackageJson": "node ./bin/esm-package-json.mjs",
     "test": "jest",
     "test:ci": "npm run test -- --ci --reporters=default --reporters=jest-junit --coverageReporters=cobertura",
-    "prepublishOnly": "npm run lint && npm run test && npm run build && npm version minor -m \"Bump version v%s\"",
-    "postpublish": "git push && git push --tags"
+    "prepublishOnly": "npm run lint && npm run test && npm run build && npm version minor -m \"Bump version v%s\" && git push && git push --tags"
   },
   "license": "MIT",
   "devDependencies": {
