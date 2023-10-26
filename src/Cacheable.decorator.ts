@@ -58,7 +58,7 @@ export const CacheKeyParam: MethodParamDecorator = () => {
  * @returns
  */
 export const Cacheable: MethodDecorator<CacheableOptions> & {
-  init: (globalOptions: CacheableGlobalOptions) => void;
+  init: (globalOptions: CacheableGlobalOptions) => CacheableBase;
   _getCache: () => CacheInterface;
 } = (cacheOptions: CacheableOptions) => {
   ensureGlobalCache({
@@ -156,10 +156,12 @@ export const Cacheable: MethodDecorator<CacheableOptions> & {
 
 // Used for storing the global cache object.
 Cacheable.init = (globalOptions: CacheableGlobalOptions) => {
-  return new CacheableBase<GlobalInMemoryCacheStorage>(
+  globalCache = new CacheableBase<GlobalInMemoryCacheStorage>(
     new GlobalInMemoryCacheStorage(),
     globalOptions,
   );
+
+  return globalCache;
 };
 Cacheable._getCache = () => GlobalInMemoryCacheStorage.getCache();
 
