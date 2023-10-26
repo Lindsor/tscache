@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import { CACHE_KEY_SUFFIX, CacheKeyParam, Cacheable, EvictCache } from '../src';
+import { CacheKeyParam, Cacheable, EvictCache } from '../src';
+import { CacheableBase } from '../src/CacheableBase';
 
 jest.useFakeTimers();
 
@@ -23,7 +24,10 @@ class SimpleGlobalClass {
 
 afterEach(() => {
   jest.restoreAllMocks();
-  Cacheable.enable();
+  Cacheable.init({
+    isEnabled: true,
+    disabledCacheNames: [],
+  });
 });
 
 describe('@Cacheable({ ... })', () => {
@@ -71,11 +75,13 @@ describe('@Cacheable({ ... })', () => {
     }
   });
 
-  test(`cache names cannot contain restricted character '${CACHE_KEY_SUFFIX}'`, () => {
+  test(`cache names cannot contain restricted character '${CacheableBase.cacheNameSuffix}'`, () => {
     try {
       // @ts-expect-error
       class SomeOtherClass {
-        @Cacheable({ cacheName: `restricted${CACHE_KEY_SUFFIX}Characters` })
+        @Cacheable({
+          cacheName: `restricted${CacheableBase.cacheNameSuffix}Characters`,
+        })
         someMethod() {}
       }
     } catch {
@@ -156,7 +162,10 @@ describe('@Cacheable({ ... })', () => {
       }
     }
 
-    Cacheable.disable();
+    Cacheable.init({
+      isEnabled: false,
+      disabledCacheNames: [],
+    });
 
     const clazz = new SomeClass();
 
@@ -173,7 +182,10 @@ describe('@Cacheable({ ... })', () => {
   });
 
   test('when disabled before initialization dont run', () => {
-    Cacheable.disable();
+    Cacheable.init({
+      isEnabled: false,
+      disabledCacheNames: [],
+    });
 
     class SomeClass {
       private simpleCachedFunctionResponses: readonly number[] = [
@@ -205,7 +217,10 @@ describe('@Cacheable({ ... })', () => {
   });
 
   test('when disabled names dont run', () => {
-    Cacheable.disableCacheNames(['disabledCacheName']);
+    Cacheable.init({
+      isEnabled: true,
+      disabledCacheNames: ['disabledCacheName'],
+    });
 
     class SomeClass {
       private simpleCachedFunctionResponses: readonly number[] = [
@@ -287,7 +302,7 @@ describe('@Cacheable({ ... })', () => {
     expect(clazz.someMethod()).toBe(0);
     expect(clazz.someMethod()).toBe(0);
 
-    delete Cacheable.getCache()['corruptCache'].value;
+    delete Cacheable._getCache()['corruptCache'].value;
 
     expect(clazz.someMethod()).toBe(1);
     expect(clazz.someMethod()).toBe(1);

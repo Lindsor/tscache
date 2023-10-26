@@ -5,6 +5,10 @@ jest.useFakeTimers();
 
 afterEach(() => {
   jest.restoreAllMocks();
+  Cacheable.init({
+    isEnabled: true,
+    disabledCacheNames: [],
+  });
 });
 
 describe('@EvictCache({ ... })', () => {
