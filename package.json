@@ -12,7 +12,7 @@
     "build": "rm -rf dist && tsc -b tsconfig.json tsconfig.cjs.json tsconfig.types.json && npm run esmPackageJson",
     "esmPackageJson": "node ./bin/esm-package-json.mjs",
     "test": "jest",
-    "prepublish": "npm run lint && npm run test && npm run build",
+    "prepublishOnly": "npm run lint && npm run test && npm run build",
     "postpublish": "npm version minor -m \"Bump version v%s\" && git push && git push --tags"
   },
   "license": "MIT",
