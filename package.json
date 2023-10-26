@@ -50,6 +50,10 @@
       "default": "./dist/esm/*.js"
     }
   },
+  "jest-junit": {
+    "outputDirectory": "coverage",
+    "outputName": "jest-junit.xml"
+  },
   "files": [
     "dist"
   ]
