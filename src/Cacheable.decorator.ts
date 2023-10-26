@@ -15,13 +15,17 @@ import { CacheableBase } from './CacheableBase';
 
 let globalCache: CacheableBase;
 
+const getMethodPropertyKey = (methodName: string): string => {
+  return `${methodName}_argsKey`;
+};
+
 export const CacheKeyParam: MethodParamDecorator = () => {
   return function (
     classTarget: Object,
     methodKey: string,
     parameterIndex: number,
   ): void {
-    const propertyKey: string = `${methodKey}_argsKey`;
+    const propertyKey: string = getMethodPropertyKey(methodKey);
     const argsKeys: number[] =
       // @ts-ignore
       Reflect.getMetadata(propertyKey, classTarget) || [];
@@ -72,8 +76,7 @@ export const Cacheable: MethodDecorator<CacheableOptions> & {
     methodKey: string,
     descriptor: PropertyDescriptor,
   ) => {
-    // TODO: Move to getter function
-    const propertyKey: string = `${methodKey}_argsKey`;
+    const propertyKey: string = getMethodPropertyKey(methodKey);
     const originalMethod: Function = descriptor.value;
 
     descriptor.value = function (...args: unknown[]) {
@@ -130,7 +133,6 @@ export const Cacheable: MethodDecorator<CacheableOptions> & {
 };
 
 // Used for storing the global cache object.
-// TODO: Figure out a better way and/or allow user to choose
 Cacheable.init = (globalOptions: CacheableGlobalOptions) => {
   globalCache = new CacheableBase<GlobalInMemoryCacheStorage>(
     new GlobalInMemoryCacheStorage(),
