@@ -16,7 +16,15 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npm test
+      - run: npm run lint
+      - run: npm run test:ci
+      - name: Test Reporter
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: 'Unit Tests'
+          path: junit.xml
+          reporter: jest-junit
       - run: npm run build
 
   publish-npm:
